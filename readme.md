@@ -10,9 +10,7 @@ cp recipe.sh.sample recipe.sh
 
 Step 2: edit recipe.sh
 
-Step 2a: 
-
-Enable toolchain:
+Step 2a: Enable toolchain:
 
 ```
 #toolchain="gcc_linaro_eabi_4_8"
@@ -25,9 +23,7 @@ Enable toolchain:
 #toolchain="gcc_linaro_gnueabihf_5"
 ```
 
-Step 2b:
-
-Enable choosen kernel_tag
+Step 2b: Enable choosen kernel_tag
 
 ```
 kernel_tag="4.1.18-ti-r52"
