@@ -1,6 +1,6 @@
 #!/bin/sh -e
 #
-# Copyright (c) 2009-2015 Robert Nelson <robertcnelson@gmail.com>
+# Copyright (c) 2009-2016 Robert Nelson <robertcnelson@gmail.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -169,6 +169,22 @@ git_kernel () {
 	cd "${DIR}/" || exit
 }
 
+git_shallow () {
+	if [ "x${kernel_tag}" = "x" ] ; then
+		echo "error: set kernel_tag in recipe.sh"
+		exit 2
+	fi
+	if [ ! -f "${DIR}/KERNEL/.ignore-${kernel_tag}" ] ; then
+		if [ -d "${DIR}/KERNEL/" ] ; then
+			rm -rf "${DIR}/KERNEL/" || true
+		fi
+		mkdir "${DIR}/KERNEL/" || true
+		echo "git: [git clone -b ${kernel_tag} https://github.com/RobertCNelson/linux-stable-rcn-ee]"
+		git clone --depth=200 -b ${kernel_tag} https://github.com/RobertCNelson/linux-stable-rcn-ee "${DIR}/KERNEL/"
+		touch "${DIR}/KERNEL/.ignore-${kernel_tag}"
+	fi
+}
+
 . "${DIR}/version.sh"
 . "${DIR}/system.sh"
 
@@ -201,4 +217,11 @@ fi
 torvalds_linux="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
 linux_stable="https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git"
 
-git_kernel
+if [ ! -f "${DIR}/.yakbuild" ] ; then
+	git_kernel
+else
+	. "${DIR}/recipe.sh"
+	git_shallow
+fi
+
+#
