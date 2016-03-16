@@ -2,15 +2,22 @@ This is just a set of scripts to rebuild a known working kernel for ARM devices.
 
 Script Bugs: "bugs@rcn-ee.com"
 
-Step 1: create recipe.sh
+Step 1: Clone repo
+
+```
+git clone https://github.com/RobertCNelson/yakbuild
+cd ./yakbuild/
+```
+
+Step 2: create recipe.sh
 
 ```
 cp recipe.sh.sample recipe.sh
 ```
 
-Step 2: edit recipe.sh
+Step 3: edit recipe.sh
 
-Step 2a: Enable toolchain:
+Step 3a: Enable toolchain:
 
 ```
 #toolchain="gcc_linaro_eabi_4_8"
@@ -23,13 +30,13 @@ Step 2a: Enable toolchain:
 #toolchain="gcc_linaro_gnueabihf_5"
 ```
 
-Step 2b: Enable choosen kernel_tag
+Step 3b: Enable choosen kernel_tag
 
 ```
 kernel_tag="4.1.18-ti-r52"
 ```
 
-Step 3: build
+Step 4: build
 
 ```
 ./build_kernel.sh
