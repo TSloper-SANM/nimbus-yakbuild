@@ -144,19 +144,19 @@ git_kernel () {
 	unset git_branch_has_list
 	LC_ALL=C git help branch | grep -m 1 -e "--list" >/dev/null 2>&1 && git_branch_has_list=enable
 	if [ "x${git_branch_has_list}" = "xenable" ] ; then
-		test_for_branch=$(git branch --list "v${KERNEL_TAG}-${BUILD}")
+		test_for_branch=$(git branch --list "v${KERNEL_TAG}${BUILD}")
 		if [ "x${test_for_branch}" != "x" ] ; then
-			git branch "v${KERNEL_TAG}-${BUILD}" -D
+			git branch "v${KERNEL_TAG}${BUILD}" -D
 		fi
 	else
-		echo "git: the following error: [error: branch 'v${KERNEL_TAG}-${BUILD}' not found.] is safe to ignore."
-		git branch "v${KERNEL_TAG}-${BUILD}" -D || true
+		echo "git: the following error: [error: branch 'v${KERNEL_TAG}${BUILD}' not found.] is safe to ignore."
+		git branch "v${KERNEL_TAG}${BUILD}" -D || true
 	fi
 
 	if [ ! "${KERNEL_SHA}" ] ; then
-		git checkout "v${KERNEL_TAG}" -b "v${KERNEL_TAG}-${BUILD}"
+		git checkout "v${KERNEL_TAG}" -b "v${KERNEL_TAG}${BUILD}"
 	else
-		git checkout "${KERNEL_SHA}" -b "v${KERNEL_TAG}-${BUILD}"
+		git checkout "${KERNEL_SHA}" -b "v${KERNEL_TAG}${BUILD}"
 	fi
 
 	if [ "${TOPOFTREE}" ] ; then
