@@ -30,7 +30,7 @@ Step 3a: Enable toolchain:
 #toolchain="gcc_linaro_gnueabihf_5"
 ```
 
-Step 3b: Enable choosen kernel_tag
+Step 3b: Enable choosen kernel_tag (uname -r)
 
 ```
 kernel_tag="4.1.18-ti-r52"
