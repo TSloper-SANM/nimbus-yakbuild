@@ -34,7 +34,7 @@ build_git () {
 		tar xf git-${debian_stable_git}.tar.gz
 		if [ -d git-${debian_stable_git} ] ; then
 			cd ./git-${debian_stable_git}/ || true
-			echo "scripts/git: [${debian_stable_git}]"
+			echo "scripts/git: building: [${debian_stable_git}]"
 
 			echo "scripts/git: [make -j${CORES} prefix=/usr/local all]"
 			make -j${CORES} prefix=/usr/local all >/dev/null 2>&1
