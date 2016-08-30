@@ -23,6 +23,10 @@
 DIR=$PWD
 CORES=$(getconf _NPROCESSORS_ONLN)
 debian_stable_git="2.1.4"
+#git hard requirements:
+#git: --local
+#git: --list
+#git: --no-edit
 
 build_git () {
 	echo "-----------------------------"
@@ -64,7 +68,7 @@ git_kernel_stable () {
 git_kernel_torvalds () {
 	echo "-----------------------------"
 	echo "scripts/git: pulling from: ${torvalds_linux}"
-	${git_bin} pull "${git_opts}" "${torvalds_linux}" master --tags || true
+	${git_bin} pull --no-edit "${torvalds_linux}" master --tags || true
 	${git_bin} tag | grep v"${KERNEL_TAG}" >/dev/null 2>&1 || git_kernel_stable
 }
 
@@ -137,21 +141,19 @@ git_kernel () {
 
 	cd "${DIR}/KERNEL/" || exit
 
-	if [ "x${git_has_local}" = "xenable" ] ; then
-		#Debian Jessie: git version 2.0.0.rc0
-		#Disable git's default setting of running `git gc --auto` in the background as the patch.sh script can fail.
-		${git_bin} config --local --list | grep gc.autodetach >/dev/null 2>&1 || ${git_bin} config --local gc.autodetach 0
+	#Debian Jessie: git version 2.0.0.rc0
+	#Disable git's default setting of running `git gc --auto` in the background as the patch.sh script can fail.
+	${git_bin} config --local --list | grep gc.autodetach >/dev/null 2>&1 || ${git_bin} config --local gc.autodetach 0
 
-		#disable git's auto Cleanup, ./KERNEL is a throw away branch...
-		${git_bin} config --local --list | grep gc.auto >/dev/null 2>&1 || ${git_bin} config --local gc.auto 0
+	#disable git's auto Cleanup, ./KERNEL is a throw away branch...
+	${git_bin} config --local --list | grep gc.auto >/dev/null 2>&1 || ${git_bin} config --local gc.auto 0
 
-		if [ ! "${git_config_user_email}" ] ; then
-			${git_bin} config --local user.email you@example.com
-		fi
+	if [ ! "${git_config_user_email}" ] ; then
+		${git_bin} config --local user.email you@example.com
+	fi
 
-		if [ ! "${git_config_user_name}" ] ; then
-			${git_bin} config --local user.name "Your Name"
-		fi
+	if [ ! "${git_config_user_name}" ] ; then
+		${git_bin} config --local user.name "Your Name"
 	fi
 
 	if [ "${RUN_BISECT}" ] ; then
@@ -165,7 +167,7 @@ git_kernel () {
 	${git_bin} reset --hard HEAD
 	${git_bin} checkout master -f
 
-	${git_bin} pull "${git_opts}" || true
+	${git_bin} pull --no-edit || true
 
 	${git_bin} tag | grep "v${KERNEL_TAG}" | grep -v rc >/dev/null 2>&1 || git_kernel_torvalds
 
@@ -173,17 +175,9 @@ git_kernel () {
 		git_kernel_torvalds
 	fi
 
-	#CentOS 6.4: git version 1.7.1 (no --list option)
-	unset git_branch_has_list
-	LC_ALL=C git help branch | grep -m 1 -e "--list" >/dev/null 2>&1 && git_branch_has_list=enable
-	if [ "x${git_branch_has_list}" = "xenable" ] ; then
-		test_for_branch=$(${git_bin} branch --list "v${KERNEL_TAG}${BUILD}")
-		if [ "x${test_for_branch}" != "x" ] ; then
-			${git_bin} branch "v${KERNEL_TAG}${BUILD}" -D
-		fi
-	else
-		echo "git: the following error: [error: branch 'v${KERNEL_TAG}${BUILD}' not found.] is safe to ignore."
-		${git_bin} branch "v${KERNEL_TAG}${BUILD}" -D || true
+	test_for_branch=$(${git_bin} branch --list "v${KERNEL_TAG}${BUILD}")
+	if [ "x${test_for_branch}" != "x" ] ; then
+		${git_bin} branch "v${KERNEL_TAG}${BUILD}" -D
 	fi
 
 	if [ ! "${KERNEL_SHA}" ] ; then
@@ -193,8 +187,8 @@ git_kernel () {
 	fi
 
 	if [ "${TOPOFTREE}" ] ; then
-		${git_bin} pull "${git_opts}" "${torvalds_linux}" master || true
-		${git_bin} pull "${git_opts}" "${torvalds_linux}" master --tags || true
+		${git_bin} pull --no-edit "${torvalds_linux}" master || true
+		${git_bin} pull --no-edit "${torvalds_linux}" master --tags || true
 	fi
 
 	${git_bin} describe
@@ -248,30 +242,16 @@ fi
 
 echo "scripts/git: [`LC_ALL=C ${git_bin} --version`]"
 
-#Debian 7 (Wheezy): git version 1.7.10.4 and later needs "--no-edit"
-unset git_opts
-git_no_edit=$(LC_ALL=C ${git_bin} help pull | grep -m 1 -e "--no-edit" || true)
-if [ ! "x${git_no_edit}" = "x" ] ; then
-	git_opts="--no-edit"
+unset git_config_user_email
+git_config_user_email=$(${git_bin} config --global --get user.email || true)
+if [ ! "${git_config_user_email}" ] ; then
+	${git_bin} config --local user.email you@example.com
 fi
 
-#CentOS 6.4: git version 1.7.1 (no --local option)
-unset git_has_local
-LC_ALL=C ${git_bin} help | grep -m 1 -e "--local" >/dev/null 2>&1 && git_has_local=enable
-
-#git 1.7.1 doesnt care if email/user is not set...
-if [ "x${git_has_local}" = "xenable" ] ; then
-	unset git_config_user_email
-	git_config_user_email=$(${git_bin} config --global --get user.email || true)
-	if [ ! "${git_config_user_email}" ] ; then
-		${git_bin} config --local user.email you@example.com
-	fi
-
-	unset git_config_user_name
-	git_config_user_name=$(${git_bin} config --global --get user.name || true)
-	if [ ! "${git_config_user_name}" ] ; then
-		${git_bin} config --local user.name "Your Name"
-	fi
+unset git_config_user_name
+git_config_user_name=$(${git_bin} config --global --get user.name || true)
+if [ ! "${git_config_user_name}" ] ; then
+	${git_bin} config --local user.name "Your Name"
 fi
 
 torvalds_linux="https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git"
