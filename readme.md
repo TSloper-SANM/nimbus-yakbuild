@@ -34,7 +34,7 @@ Step 3a: Enable toolchain:
 Step 3b: Enable choosen kernel_tag (uname -r)
 
 ```
-kernel_tag="4.4.9-ti-r25"
+kernel_tag="4.4.19-ti-r41"
 ```
 
 Step 4: build
