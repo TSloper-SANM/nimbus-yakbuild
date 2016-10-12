@@ -54,6 +54,9 @@ cleanup () {
 		if [ "x${wdir}" = "x" ] ; then
 			${git_bin} format-patch -${number} -o ${DIR}/patches/
 		else
+			if [ ! -d ${DIR}/patches/${wdir}/ ] ; then
+				mkdir -p ${DIR}/patches/${wdir}/
+			fi
 			${git_bin} format-patch -${number} -o ${DIR}/patches/${wdir}/
 			unset wdir
 		fi
@@ -61,152 +64,11 @@ cleanup () {
 	exit 2
 }
 
-cherrypick () {
-	if [ ! -d ../patches/${cherrypick_dir} ] ; then
-		mkdir -p ../patches/${cherrypick_dir}
-	fi
-	${git_bin} format-patch -1 ${SHA} --start-number ${num} -o ../patches/${cherrypick_dir}
-	num=$(($num+1))
-}
-
-external_git () {
-	git_tag=""
-	echo "pulling: ${git_tag}"
-	${git_bin} pull --no-edit ${git_patchset} ${git_tag}
-}
-
-aufs_fail () {
-	echo "aufs4 failed"
-	exit 2
-}
-
-aufs4 () {
-	echo "dir: aufs4"
-	#regenerate="enable"
-	if [ "x${regenerate}" = "xenable" ] ; then
-		wget https://raw.githubusercontent.com/sfjro/aufs4-standalone/aufs${KERNEL_REL}/aufs4-kbuild.patch
-		patch -p1 < aufs4-kbuild.patch || aufs_fail
-		rm -rf aufs4-kbuild.patch
-		${git_bin} add .
-		${git_bin} commit -a -m 'merge: aufs4-kbuild' -s
-
-		wget https://raw.githubusercontent.com/sfjro/aufs4-standalone/aufs${KERNEL_REL}/aufs4-base.patch
-		patch -p1 < aufs4-base.patch || aufs_fail
-		rm -rf aufs4-base.patch
-		${git_bin} add .
-		${git_bin} commit -a -m 'merge: aufs4-base' -s
-
-		wget https://raw.githubusercontent.com/sfjro/aufs4-standalone/aufs${KERNEL_REL}/aufs4-mmap.patch
-		patch -p1 < aufs4-mmap.patch || aufs_fail
-		rm -rf aufs4-mmap.patch
-		${git_bin} add .
-		${git_bin} commit -a -m 'merge: aufs4-mmap' -s
-
-		wget https://raw.githubusercontent.com/sfjro/aufs4-standalone/aufs${KERNEL_REL}/aufs4-standalone.patch
-		patch -p1 < aufs4-standalone.patch || aufs_fail
-		rm -rf aufs4-standalone.patch
-		${git_bin} add .
-		${git_bin} commit -a -m 'merge: aufs4-standalone' -s
-
-		${git_bin} format-patch -4 -o ../patches/aufs4/
-		exit 2
-	fi
-
-	${git} "${DIR}/patches/aufs4/0001-merge-aufs4-kbuild.patch"
-	${git} "${DIR}/patches/aufs4/0002-merge-aufs4-base.patch"
-	${git} "${DIR}/patches/aufs4/0003-merge-aufs4-mmap.patch"
-	${git} "${DIR}/patches/aufs4/0004-merge-aufs4-standalone.patch"
-
-	#regenerate="enable"
-	if [ "x${regenerate}" = "xenable" ] ; then
-		echo "dir: aufs4"
-
-		cd ../
-		if [ ! -f ./aufs4-standalone ] ; then
-			${git_bin} clone https://github.com/sfjro/aufs4-standalone
-			cd ./aufs4-standalone
-			${git_bin} checkout origin/aufs${KERNEL_REL} -b tmp
-			cd ../
-		fi
-		cd ./KERNEL/
-
-		cp -v ../aufs4-standalone/Documentation/ABI/testing/*aufs ./Documentation/ABI/testing/
-		mkdir -p ./Documentation/filesystems/aufs/
-		cp -rv ../aufs4-standalone/Documentation/filesystems/aufs/* ./Documentation/filesystems/aufs/
-		mkdir -p ./fs/aufs/
-		cp -v ../aufs4-standalone/fs/aufs/* ./fs/aufs/
-		cp -v ../aufs4-standalone/include/uapi/linux/aufs_type.h ./include/uapi/linux/
-
-		${git_bin} add .
-		${git_bin} commit -a -m 'merge: aufs4' -s
-		${git_bin} format-patch -5 -o ../patches/aufs4/
-
-		exit 2
-	fi
-
-	#regenerate="enable"
-	if [ "x${regenerate}" = "xenable" ] ; then
-		start_cleanup
-	fi
-
-	${git} "${DIR}/patches/aufs4/0005-merge-aufs4.patch"
-
-	if [ "x${regenerate}" = "xenable" ] ; then
-		${git_bin} format-patch -5 -o ../patches/aufs4/
-		exit 2
-	fi
-}
-
-rt_cleanup () {
-	echo "rt: needs fixup"
-	exit 2
-}
-
-rt () {
-	echo "dir: rt"
-	rt_patch="${KERNEL_REL}${kernel_rt}"
-	#regenerate="enable"
-	if [ "x${regenerate}" = "xenable" ] ; then
-		wget -c https://www.kernel.org/pub/linux/kernel/projects/rt/${KERNEL_REL}/patch-${rt_patch}.patch.xz
-		xzcat patch-${rt_patch}.patch.xz | patch -p1 || rt_cleanup
-		rm -f patch-${rt_patch}.patch.xz
-		rm -f localversion-rt
-		${git_bin} add .
-		${git_bin} commit -a -m 'merge: CONFIG_PREEMPT_RT Patch Set' -s
-		${git_bin} format-patch -1 -o ../patches/rt/
-
-		exit 2
-	fi
-
-	${git} "${DIR}/patches/rt/0001-merge-CONFIG_PREEMPT_RT-Patch-Set.patch"
-}
-
 local_patch () {
 	echo "dir: dir"
 	${git} "${DIR}/patches/dir/0001-patch.patch"
 }
 
-#external_git
-#aufs4
-#rt
 #local_patch
 
-packaging () {
-	echo "dir: packaging"
-	#regenerate="enable"
-	if [ "x${regenerate}" = "xenable" ] ; then
-		cp -v "${DIR}/3rdparty/packaging/builddeb" "${DIR}/KERNEL/scripts/package"
-		#v4.8.0-rc1+
-		if [ ! -d "${DIR}/KERNEL/scripts/gcc-plugins/" ] ; then
-			sed -i -e 's:(cd $objtree; find scripts/gcc-plugins:#(cd $objtree; find scripts/gcc-plugins:g' "${DIR}/KERNEL/scripts/package/builddeb"
-		fi
-		${git_bin} commit -a -m 'packaging: sync builddeb changes' -s
-		${git_bin} format-patch -1 -o "${DIR}/patches/packaging"
-		exit 2
-	else
-		${git} "${DIR}/patches/packaging/0001-packaging-sync-builddeb-changes.patch"
-	fi
-}
-
-packaging
 echo "patch.sh ran successfully"
