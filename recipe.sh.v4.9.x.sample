@@ -20,4 +20,4 @@ toolchain="gcc_linaro_gnueabihf_6"
 #toolchain="gcc_linaro_aarch64_gnu_6"
 
 #Kernel/Build
-kernel_tag="4.9-rc3-ti-r0"
+kernel_tag="4.9-rc3-ti-r1"
