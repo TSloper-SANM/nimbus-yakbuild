@@ -77,7 +77,7 @@ dir () {
 
 		number=
 		for p in "${DIR}/patches/$wdir/"*.patch; do
-			${git} "$p"
+			${git} "$p" || true
 			number=$(( $number + 1 ))
 		done
 
@@ -88,11 +88,6 @@ dir () {
 	unset wdir
 }
 
-local_patch () {
-	echo "dir: dir"
-	${git} "${DIR}/patches/dir/0001-patch.patch"
-}
-
-#local_patch
+dir 'local_patches'
 
 echo "patch.sh ran successfully"

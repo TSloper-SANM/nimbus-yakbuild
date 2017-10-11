@@ -257,7 +257,7 @@ git_shallow () {
 		fi
 		mkdir "${DIR}/KERNEL/" || true
 		echo "git: [git clone -b ${kernel_tag} https://github.com/RobertCNelson/linux-stable-rcn-ee]"
-		${git_bin} clone --depth=100 -b ${kernel_tag} https://github.com/RobertCNelson/linux-stable-rcn-ee "${DIR}/KERNEL/" || git_shallow_fail
+		${git_bin} clone --depth=10 -b ${kernel_tag} https://github.com/RobertCNelson/linux-stable-rcn-ee "${DIR}/KERNEL/" || git_shallow_fail
 		touch "${DIR}/KERNEL/.ignore-${kernel_tag}"
 	fi
 }
