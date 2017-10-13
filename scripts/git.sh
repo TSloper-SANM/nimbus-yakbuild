@@ -41,10 +41,10 @@ build_git () {
 			echo "scripts/git: building: [${debian_stable_git}]"
 
 			echo "scripts/git: [make -j${CORES} prefix=/usr/local all]"
-			make -j${CORES} prefix=/usr/local all >/dev/null 2>&1
+			make -j${CORES} prefix=/usr/local all
 
 			echo "scripts/git: [sudo make prefix=/usr/local install]"
-			sudo make prefix=/usr/local install >/dev/null 2>&1
+			sudo make prefix=/usr/local install
 
 			cd "${DIR}/ignore/" || true
 			rm -rf git-${debian_stable_git}/ || true
