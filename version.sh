@@ -8,6 +8,6 @@ build_prefix="-r"
 branch_prefix="v"
 branch_postfix=".x"
 
-DISTRO=cross
+DISTRO=xross
 DEBARCH=armhf
 #

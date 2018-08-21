@@ -153,6 +153,9 @@ debian_regs () {
 	#v4.18-rc0
 	pkg="pkg-config"
 	check_dpkg
+	#GCC_PLUGINS
+	pkg="libmpc-dev"
+	check_dpkg
 
 	unset warn_dpkg_ia32
 	unset stop_pkg_search
@@ -287,6 +290,10 @@ debian_regs () {
 		betsy)
 			#LMDE 2
 			deb_distro="jessie"
+			;;
+		cindy)
+			#LMDE 3 https://linuxmint.com/rel_cindy.php
+			deb_distro="stretch"
 			;;
 		debian)
 			deb_distro="jessie"
