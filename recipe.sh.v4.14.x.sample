@@ -23,4 +23,4 @@ toolchain="gcc_linaro_gnueabihf_7"
 #toolchain="gcc_linaro_aarch64_gnu_7"
 
 #Kernel/Build
-kernel_tag="4.14.29-ti-r40"
+kernel_tag="4.14.69-ti-r75"
