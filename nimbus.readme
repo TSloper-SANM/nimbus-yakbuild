@@ -1,0 +1,30 @@
+This readme file describes how to:
+
+1. Clone the nimbus-yakbuild repository
+2. Select the correct working branch
+3. Begin the build process
+4. Begin the rebuild process if necessary
+
+Instructions
+============
+
+1. Clone the nimbus-yakbuild respository
+
+$ git clone https://github.com/TSloper-SANM/nimbus-yakbuild.git
+
+2. Select the correct working branch
+
+$ git checkout nimbus-<HW rev> (ie. 002, 003, etc.)
+
+Example: $ git checkout nimbus-002
+
+3. Begin the build process
+
+$ ./build_kernel.sh
+
+Once the compiler and kernel have been downloaded the script will
+apply any necessary patches, followed by initiation of the build process.
+
+4. Begin the rebuild process if necessary
+
+$ ./tools/rebuild.sh
