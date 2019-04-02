@@ -49,7 +49,7 @@ copy_defconfig () {
 		cp -v .config "${DIR}/patches/ref_${config}"
 		cp -v "${DIR}/patches/defconfig" .config
 	else
-		make ARCH=${KERNEL_ARCH} CROSS_COMPILE="${CC}" rcn-ee_defconfig
+		make ARCH=${KERNEL_ARCH} CROSS_COMPILE="${CC}" nimbus_defconfig
 	fi
 	cd "${DIR}/" || exit
 }

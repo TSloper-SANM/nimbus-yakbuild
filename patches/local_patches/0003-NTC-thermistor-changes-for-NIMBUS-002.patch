@@ -1,0 +1,113 @@
+From 458b3a56ec5d4389b3ec0642739c9b00819a9a16 Mon Sep 17 00:00:00 2001
+From: Tim Sloper <tim.sloper@outlook.com>
+Date: Mon, 1 Apr 2019 23:59:29 -0400
+Subject: [PATCH 3/4] NTC thermistor changes for NIMBUS-002
+
+---
+ drivers/hwmon/ntc_thermistor.c               | 49 +++++++++++++++++++-
+ include/linux/platform_data/ntc_thermistor.h |  1 +
+ 2 files changed, 49 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/hwmon/ntc_thermistor.c b/drivers/hwmon/ntc_thermistor.c
+index feed3064..8a9dd5e6 100644
+--- a/drivers/hwmon/ntc_thermistor.c
++++ b/drivers/hwmon/ntc_thermistor.c
+@@ -54,6 +54,7 @@ static const struct platform_device_id ntc_thermistor_id[] = {
+ 	{ "ncp15wl333", TYPE_NCPXXWL333 },
+ 	{ "b57330v2103", TYPE_B57330V2103},
+ 	{ "ncp03wf104", TYPE_NCPXXWF104 },
++	{ "ncp18xh103", TYPE_NCPXXXH103 },
+ 	{ },
+ };
+ 
+@@ -173,6 +174,43 @@ static const struct ntc_compensation ncpXXwf104[] = {
+ 	{ .temp_c	= 125, .ohm	= 2522 },
+ };
+ 
++static const struct ntc_compensation ncpXXxh103[] = {
++	{ .temp_c	= -40, .ohm	= 195652 },
++	{ .temp_c	= -35, .ohm	= 148171 },
++	{ .temp_c	= -30, .ohm	= 113347 },
++	{ .temp_c	= -25, .ohm	= 87559 },
++	{ .temp_c	= -20, .ohm	= 68237 },
++	{ .temp_c	= -15, .ohm	= 53650 },
++	{ .temp_c	= -10, .ohm	= 42506 },
++	{ .temp_c	= -5, .ohm	= 33892 },
++	{ .temp_c	= 0, .ohm	= 27219 },
++	{ .temp_c	= 5, .ohm	= 22021 },
++	{ .temp_c	= 10, .ohm	= 17926 },
++	{ .temp_c	= 15, .ohm	= 14674 },
++	{ .temp_c	= 20, .ohm	= 12081 },
++	{ .temp_c	= 25, .ohm	= 10000 },
++	{ .temp_c	= 30, .ohm	= 8315 },
++	{ .temp_c	= 35, .ohm	= 6948 },
++	{ .temp_c	= 40, .ohm	= 5834 },
++	{ .temp_c	= 45, .ohm	= 4917 },
++	{ .temp_c	= 50, .ohm	= 4161 },
++	{ .temp_c	= 55, .ohm	= 3535 },
++	{ .temp_c	= 60, .ohm	= 3014 },
++	{ .temp_c	= 65, .ohm	= 2586 },
++	{ .temp_c	= 70, .ohm	= 2228 },
++	{ .temp_c	= 75, .ohm	= 1925 },
++	{ .temp_c	= 80, .ohm	= 1669 },
++	{ .temp_c	= 85, .ohm	= 1452 },
++	{ .temp_c	= 90, .ohm	= 1268 },
++	{ .temp_c	= 95, .ohm	= 1110 },
++	{ .temp_c	= 100, .ohm	= 974 },
++	{ .temp_c	= 105, .ohm	= 858 },
++	{ .temp_c	= 110, .ohm	= 758 },
++	{ .temp_c	= 115, .ohm	= 672 },
++	{ .temp_c	= 120, .ohm	= 596 },
++	{ .temp_c	= 125, .ohm	= 531 },
++};
++
+ /*
+  * The following compensation table is from the specification of EPCOS NTC
+  * Thermistors Datasheet
+@@ -239,7 +277,10 @@ static int ntc_adc_iio_read(struct ntc_thermistor_platform_data *pdata)
+ 	ret = iio_convert_raw_to_processed(channel, raw, &uv, 1000);
+ 	if (ret < 0) {
+ 		/* Assume 12 bit ADC with vref at pullup_uv */
+-		uv = (pdata->pullup_uv * (s64)raw) >> 12;
++		/* uv = (pdata->pullup_uv * (s64)raw) >> 12; */
++
++		/* [TRS] Correcting for pullup to 3.3V */
++		uv = (1825000 * (s64)raw) >> 12;
+ 	}
+ 
+ 	return uv;
+@@ -260,6 +301,8 @@ static const struct of_device_id ntc_match[] = {
+ 		.data = &ntc_thermistor_id[5]},
+ 	{ .compatible = "murata,ncp03wf104",
+ 		.data = &ntc_thermistor_id[6] },
++	{ .compatible = "murata,ncp18xh103",
++		.data = &ntc_thermistor_id[7] },
+ 
+ 	/* Usage of vendor name "ntc" is deprecated */
+ 	{ .compatible = "ntc,ncp15wb473",
+@@ -609,6 +652,10 @@ static int ntc_thermistor_probe(struct platform_device *pdev)
+ 		data->comp = ncpXXwf104;
+ 		data->n_comp = ARRAY_SIZE(ncpXXwf104);
+ 		break;
++	case TYPE_NCPXXXH103:
++		data->comp = ncpXXxh103;
++		data->n_comp = ARRAY_SIZE(ncpXXxh103);
++		break;
+ 	default:
+ 		dev_err(&pdev->dev, "Unknown device type: %lu(%s)\n",
+ 				pdev_id->driver_data, pdev_id->name);
+diff --git a/include/linux/platform_data/ntc_thermistor.h b/include/linux/platform_data/ntc_thermistor.h
+index aed17058..698d0d59 100644
+--- a/include/linux/platform_data/ntc_thermistor.h
++++ b/include/linux/platform_data/ntc_thermistor.h
+@@ -28,6 +28,7 @@ enum ntc_thermistor_type {
+ 	TYPE_NCPXXWL333,
+ 	TYPE_B57330V2103,
+ 	TYPE_NCPXXWF104,
++	TYPE_NCPXXXH103,
+ };
+ 
+ struct ntc_thermistor_platform_data {
+-- 
+2.17.1
+
